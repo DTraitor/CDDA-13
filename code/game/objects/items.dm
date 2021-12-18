@@ -109,6 +109,8 @@
 
 	var/flags_item_map_variant = NONE
 
+	var/list/crafting_qualities
+
 	//TOOL RELATED VARS
 	var/tool_behaviour = FALSE
 	var/toolspeed = 1

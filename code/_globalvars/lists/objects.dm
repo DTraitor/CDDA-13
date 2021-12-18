@@ -55,6 +55,8 @@ GLOBAL_LIST_EMPTY(sensor_towers)
 
 GLOBAL_LIST_EMPTY(unmanned_vehicles)
 
+GLOBAL_LIST_EMPTY(crafting_recipes) //list of all table craft recipes
+
 GLOBAL_LIST_INIT(supply_drops, typecacheof(list(
 	/obj/structure/closet/crate,
 	/obj/machinery/vending)))

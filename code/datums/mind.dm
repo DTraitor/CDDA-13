@@ -33,6 +33,8 @@
 
 	var/memory
 
+	var/list/learned_recipes //List of learned recipe TYPES.
+
 	var/datum/money_account/initial_account
 
 	var/last_death = 0
