@@ -654,7 +654,7 @@
 	icon_state = "fire0"
 	screen_loc = ui_fire
 
-/atom/movable/screen/craft
+/obj/screen/craft
 	name = "crafting menu"
 	icon = 'icons/mob/screen/midnight.dmi'
 	icon_state = "craft"

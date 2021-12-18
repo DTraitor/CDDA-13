@@ -154,6 +154,8 @@ GLOBAL_LIST_EMPTY(randomized_pill_icons)
 		var/datum/namepool/NP = new path
 		GLOB.namepool[path] = NP
 
+	init_crafting_recipes(GLOB.crafting_recipes)
+
 	return TRUE
 
 
@@ -165,3 +167,11 @@ GLOBAL_LIST_EMPTY(randomized_pill_icons)
 	for(var/path in subtypesof(prototype))
 		L += new path()
 	return L
+
+/// Inits the crafting recipe list, sorting crafting recipe requirements in the process.
+/proc/init_crafting_recipes(list/crafting_recipes)
+	for(var/path in subtypesof(/datum/crafting_recipe))
+		var/datum/crafting_recipe/recipe = new path()
+		recipe.required_items_consume = sortList(recipe.required_items_consume, /proc/cmp_crafting_req_priority)
+		crafting_recipes += recipe
+	return crafting_recipes

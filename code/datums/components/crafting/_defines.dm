@@ -4,5 +4,5 @@
 #define CRAFTING_MACHINERY_USE 0
 
 GLOBAL_LIST_INIT(crafting_qualities, list(
-	CRAFTING_QUALITY_STICK = list("wooden", "steel", "titanium")
+	CRAFT_QUALITY_STICK = list(1 = "wooden", 2 = "steel", 3 = "titanium")
 ))

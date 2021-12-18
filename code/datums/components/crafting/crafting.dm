@@ -1,40 +1,33 @@
 /datum/component/personal_crafting
 	var/busy
-	var/viewing_category = 1 //typical powergamer starting on the Weapons tab
-	var/viewing_subcategory = 1
 	var/list/categories = list(
-				CAT_WEAPONRY = list(
-					CAT_WEAPON,
-					CAT_AMMO,
-				),
-				CAT_ROBOT = CAT_NONE,
-				CAT_MISC = CAT_NONE,
-				CAT_PRIMAL = CAT_NONE,
-				CAT_FOOD = list(
-					CAT_BREAD,
-					CAT_BURGER,
-					CAT_CAKE,
-					CAT_EGG,
-					CAT_LIZARD,
-					CAT_ICE,
-					CAT_MEAT,
-					CAT_SEAFOOD,
-					CAT_MISCFOOD,
-					CAT_PASTRY,
-					CAT_PIE,
-					CAT_PIZZA,
-					CAT_SALAD,
-					CAT_SANDWICH,
-					CAT_SOUP,
-					CAT_SPAGHETTI,
-				),
-				CAT_DRINK = CAT_NONE,
-				CAT_CLOTHING = CAT_NONE,
-				CAT_ATMOSPHERIC = CAT_NONE,
+				CAT_WEAPON,
+				CAT_AMMO,
+				CAT_ROBOT,
+				CAT_MISC,
+				CAT_PRIMAL,
+				CAT_BREAD,
+				CAT_BURGER,
+				CAT_CAKE,
+				CAT_EGG,
+				CAT_LIZARD,
+				CAT_ICE,
+				CAT_MEAT,
+				CAT_SEAFOOD,
+				CAT_MISCFOOD,
+				CAT_PASTRY,
+				CAT_PIE,
+				CAT_PIZZA,
+				CAT_SALAD,
+				CAT_SANDWICH,
+				CAT_SOUP,
+				CAT_SPAGHETTI,
+				CAT_DRINK,
+				CAT_CLOTHING,
+				CAT_ATMOSPHERIC,
 			)
 
 	var/cur_category = CAT_NONE
-	var/cur_subcategory = CAT_NONE
 	var/datum/action/innate/crafting/button
 	var/display_craftable_only = FALSE
 	var/display_compact = TRUE
@@ -47,12 +40,12 @@
 	SIGNAL_HANDLER
 
 	var/datum/hud/H = user.hud_used
-	var/atom/movable/screen/craft/C = new()
+	var/obj/screen/craft/C = new()
 	H.static_inventory += C
 	CL.screen += C
 	RegisterSignal(C, COMSIG_CLICK, .proc/component_ui_interact)
 
-/datum/component/personal_crafting/proc/component_ui_interact(atom/movable/screen/craft/image, location, control, params, user)
+/datum/component/personal_crafting/proc/component_ui_interact(obj/screen/craft/image, location, control, params, user)
 	SIGNAL_HANDLER
 
 	if(user == parent)
@@ -66,11 +59,6 @@
 	ui = SStgui.try_update_ui(user, src, ui)
 	if(!ui)
 		cur_category = categories[1]
-		if(islist(categories[cur_category]))
-			var/list/subcats = categories[cur_category]
-			cur_subcategory = subcats[1]
-		else
-			cur_subcategory = CAT_NONE
 		ui = new(user, src, "PersonalCrafting")
 		ui.open()
 
@@ -78,7 +66,6 @@
 	var/list/data = list()
 	data["busy"] = busy
 	data["category"] = cur_category
-	data["subcategory"] = cur_subcategory
 	data["display_craftable_only"] = display_craftable_only
 	data["display_compact"] = display_compact
 
@@ -90,7 +77,7 @@
 		if(!R.always_available && !(R.type in user?.mind?.learned_recipes)) //User doesn't actually know how to make this.
 			continue
 
-		if((R.category != cur_category) || (R.subcategory != cur_subcategory))
+		if(R.category != cur_category)
 			continue
 
 		craftability["[REF(R)]"] = check_contents(user, R, surroundings)
@@ -114,13 +101,7 @@
 		if(isnull(crafting_recipes[R.category]))
 			crafting_recipes[R.category] = list()
 
-		if(R.subcategory == CAT_NONE)
-			crafting_recipes[R.category] += list(build_recipe_data(R))
-		else
-			if(isnull(crafting_recipes[R.category][R.subcategory]))
-				crafting_recipes[R.category][R.subcategory] = list()
-				crafting_recipes[R.category]["has_subcats"] = TRUE
-			crafting_recipes[R.category][R.subcategory] += list(build_recipe_data(R))
+		crafting_recipes[R.category] += list(build_recipe_data(R))
 
 	data["crafting_recipes"] = crafting_recipes
 	return data
@@ -154,26 +135,30 @@
 			. = TRUE
 		if("set_category")
 			cur_category = params["category"]
-			cur_subcategory = params["subcategory"] || ""
 			. = TRUE
 
 /datum/component/personal_crafting/proc/build_recipe_data(datum/crafting_recipe/recipe)
 	var/list/data = list()
 	data["name"] = recipe.name
+	data["desc"] = recipe.desc
 	data["ref"] = "[REF(recipe)]"
+	var/list/machinery_text = list()
+	var/list/crafting_qualities_text = list()
 	var/list/req_text = list()
 	var/list/tool_list = list()
 	var/list/catalyst_text = list()
 
 	for(var/obj/machinery/content as anything in recipe.machinery)
-		if(recipe.machinery[content] == CRAFTING_MACHINERY_CONSUME)
-			req_text += "[initial(content.name)] to disassemble in the process"
+		if(recipe.machinery[content])
+			machinery_text += "[initial(content.name)] to disassemble in the process"
 		else
-			req_text += "[initial(content.name)] to use"
+			machinery_text += "[initial(content.name)] to use"
+	data["machinery_text"] = machinery_text.Join(", ")
 
 	for(var/quality in recipe.required_qualities_consume)
 		for(var/quality_level in recipe.required_qualities_consume[quality])
-			req_text += "[recipe.required_qualities_consume[quality][quality_level]] [GLOB.crafting_qualities[quality][quality_level]] (or better) [quality]"
+			crafting_qualities_text += "[recipe.required_qualities_consume[quality][quality_level]] [GLOB.crafting_qualities[quality][text2num(quality_level)]] (or better) [quality]"
+	data["crafting_qualities_text"] = crafting_qualities_text.Join(", ")
 
 	for(var/atom/req_atom as anything in recipe.required_items_consume)
 		//We just need the name, so cheat-typecast to /atom for speed (even tho Reagents are /datum they DO have a "name" var)
@@ -234,7 +219,7 @@
 						.["crafting_qualities"][quality][item.crafting_qualities[quality]] += item
 				.["amounts"][item.type] += 1
 		else if (ismachinery(object))
-			.["machinery"][object.type] += object
+			LAZYADDASSOC(.["machinery"], object.type, object)
 
 /datum/component/personal_crafting/proc/check_contents(atom/atom, datum/crafting_recipe/recipe, list/contents)
 	var/list/item_instances = contents["items"]
@@ -271,7 +256,7 @@
 
 	for(var/quality in recipe.required_qualities_consume)
 		for(var/quality_level in recipe.required_qualities_consume[quality])
-			if(crafting_qualities[quality][quality_level].len < recipe.required_qualities_consume[quality][quality_level])
+			if(crafting_qualities[quality][text2num(quality_level)].len < recipe.required_qualities_consume[quality][quality_level])
 				return FALSE
 			else
 				requirements_list[quality][quality_level] = crafting_qualities[quality][quality_level]
